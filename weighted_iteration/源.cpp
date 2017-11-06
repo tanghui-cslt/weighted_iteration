@@ -81,14 +81,16 @@ void weighted_iteration(double ** &A, double *&x, double *&b, int &n)
 	//	cout << "min = " << min << endl;
 		if (min < ERROR)
 		{
-			cout << "达到精确值\n";
+			//cout << "达到精确值\n";
 			break;
 		}
 	}
-	cout << "迭代次数：" << i << endl;
 	if (i == MAX_TIMES)
 	{
 		cout << "达到最大迭代次数\n";
+	}
+	else {
+		cout << "迭代次数：" << i << endl;
 	}
 	cout << "x的值为：\n";
 	for (int i = 0; i < n; i++)
