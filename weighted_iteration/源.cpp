@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <cstring>
 using namespace std;
 #define MAX_TIMES 100
 #define ERROR 1e-11
@@ -27,24 +28,32 @@ int main()
 }
 double calc_alpha(double **A, const int n)
 {
-	double alpha, min = A[0][0];
+	double alpha, min = fabs(A[0][0]);
 	for (int i = 0; i< n; i ++)
 	{
 		for (int j = 0; j < n; j++)
 		{
-			min = min > A[i][j]? A[i][j] : min;
+			min = min > fabs(A[i][j])? fabs(A[i][j]) : min;
 		}
 	}
 	//cout << "min = " << min;
 	alpha = min*min / 9;
 	return alpha;
 }
-void Correction_A(double **&A, double alpha, const int n)
+double ** Correction_A(double **A, double alpha, const int n)
 {
+	double **temp_a = new double *[n];
 	for (int i = 0; i< n; i++)
 	{
-		A[i][i] += alpha;
+		temp_a[i] = new double[n];
+
+		memcpy(temp_a[i], A[i],  sizeof(double)*n);
+	}	
+	for (int i = 0; i< n; i++)
+	{
+		temp_a[i][i] += alpha;
 	}
+	return temp_a;
 }
 void weighted_iteration(double ** &A, double *&x, double *&b, int &n)
 {
@@ -52,18 +61,18 @@ void weighted_iteration(double ** &A, double *&x, double *&b, int &n)
 	double *r = NULL, *d = NULL;
 	double norm_x = 0, norm_d = 0;
 	int i = 0;
-	double alpha = calc_alpha(A, n);
-	//alpha = 0.00011;
-	//cout << "alpha = " << alpha << endl;
-	
-	Correction_A(A,alpha,n);
+	//double alpha = calc_alpha(A, n);
+	double alpha = 0.00011;
+	double ** temp_a = Correction_A(A,alpha,n);
 
+	
 
 	LU_decom(A, l, u, n);
 
-
 	x = Calc_X(l, u, b, n);
 	
+	LU_decom(temp_a, l, u, n);
+
 	for (i = 0; i < MAX_TIMES; i++)
 	{
 
@@ -78,8 +87,7 @@ void weighted_iteration(double ** &A, double *&x, double *&b, int &n)
 		norm_d = max_element(d, n);
 
 		double min = fabs(norm_d / norm_x);
-	//	cout << "min = " << min << endl;
-		if (min < ERROR)
+		if (norm_d < ERROR)
 		{
 			//cout << "达到精确值\n";
 			break;
@@ -87,7 +95,7 @@ void weighted_iteration(double ** &A, double *&x, double *&b, int &n)
 	}
 	if (i == MAX_TIMES)
 	{
-		cout << "达到最大迭代次数\n";
+		cout << "达到最大迭代次数,"<<i<<"次\n";
 	}
 	else {
 		cout << "迭代次数：" << i << endl;
@@ -102,10 +110,10 @@ void weighted_iteration(double ** &A, double *&x, double *&b, int &n)
 
 double max_element(double *a, int n)
 {
-	double max_num = a[0];
+	double max_num = fabs(a[0]);
 	for (int i = 1; i < n; i++)
 	{
-		max_num = max_num < a[i] ? a[i] : max_num;
+		max_num = max_num < fabs(a[i]) ? fabs(a[i]) : max_num;
 	}
 	return max_num;
 }
@@ -130,7 +138,6 @@ double * Calc_r(double ** &A, double *&x, double *&b, int &n)
 			sum += A[i][j] * x[j];
 		}
 		r[i] = b[i] - sum;
-		//cout << r[i] << " ";
 	}
 	return r;
 }
@@ -147,26 +154,16 @@ void scanf_data(double ** &A, double *&x, double *&b, int &n)
 		A[i] = new double[n];
 		for (size_t j = 0; j < n; j++)
 		{
-			A[i][j] = 1.0/(i+1+j+1);
+			//A[i][j] = 1.0/(i+1+j+1);
+			cin >> A[i][j];
 		}
 	}
-
-	//x = new double[n];
-	//cout << "请输入x初值:\n";
-	//for (size_t i = 0; i < n; i++)
-	//{
-	//	cin >> x[i];
-	//}
 
 	cout << "请输入向量b:\n";
 	for (size_t i = 0; i < n; i++)
 	{
-		b[i] = 0;
-		for (int j = 0; j < n; j++)
-		{
-			b[i] += A[i][j];
-		}
-		//cin >> b[i];
+		
+		cin >> b[i];
 		
 	}
 }
